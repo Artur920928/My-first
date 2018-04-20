@@ -1,0 +1,143 @@
+#import
+import pandas as pd
+import numpy as np
+
+#read data
+FIFA2018 = pd.read_csv("C:/Users/artur/Desktop/Project/Data_set.csv")
+
+#checking nulls
+FIFA2018.isnull().any().any(), FIFA2018.shape
+
+#checking max nulls value
+FIFA2018.isnull().sum(axis=0).max()
+
+#drop columns with large amount of null
+FIFA2018 = FIFA2018.drop(['rs', 'rw', 'rf', 'ram', 'rcm', 'rm', 'rdm', 'rcb', 'rb', 'rwb', 'st', 'lw', 'cf', 'cam', 'cm', 'lm', 'cdm', 'cb', 'lb', 'lwb', 'ls', 'lf', 'lam', 'lcm', 'ldm', 'lcb', 'gk'], axis=1)
+
+#checking nulls again
+FIFA2018.isnull().sum(axis=0)
+
+#drop 'eur_release_clause' column
+FIFA2018 = FIFA2018.drop(['eur_release_clause'], axis=1)
+
+#drop all nulls
+FIFA2018= FIFA2018.dropna()
+
+#proof that dataframe is without nulls
+FIFA2018.isnull().any().any(), FIFA2018.shape
+
+#some statistics
+FIFA2018.describe()
+
+#creating a list to correlate
+cor_dataset = ['age', 'height_cm', 'weight_kg', 'overall', 'potential']
+
+#loop checking correlation between Player value and chosen variables
+for i in cor_dataset:
+    related = FIFA2018['eur_value'].corr(FIFA2018[i])
+    print("%s: %f" % (i,related))
+
+#loop checking correlation between Player wage and chosen variables
+for i in cor_dataset:
+    related = FIFA2018['eur_wage'].corr(FIFA2018[i])
+    print("%s: %f" % (i, related))
+
+#new sets to another correlate
+young = FIFA2018[FIFA2018.age <= 30]
+old = FIFA2018[FIFA2018.age > 30]
+
+#loop checking correlation between young Player wage and chosen variables
+for i in cor_dataset:
+    related = young['eur_wage'].corr(young[i])
+    print("%s: %f" % (i, related))
+
+#loop checking correlation between old Player wage and chosen variables
+for i in cor_dataset:
+    related = old['eur_wage'].corr(old[i])
+    print("%s: %f" % (i, related))
+
+#loop checking correlation between young Player value and chosen variables
+for i in cor_dataset:
+    related = young['eur_value'].corr(young[i])
+    print("%s: %f" % (i, related))
+
+#loop checking correlation between old Player value and chosen variables
+for i in cor_dataset:
+    related = old['eur_value'].corr(old[i])
+    print("%s: %f" % (i, related))
+
+
+#adding new column with info if Player plays in one of the best league
+for i in FIFA2018.index:
+    if FIFA2018.loc[i,'league'] =='Spanish Primera División':
+        FIFA2018.loc[i,'Big_league_or_not'] = 1
+    elif FIFA2018.loc[i,'league'] == 'French Ligue 1':
+        FIFA2018.loc[i,'Big_league_or_not'] = 1
+    elif FIFA2018.loc[i,'league'] =='German Bundesliga':
+        FIFA2018.loc[i,'Big_league_or_not'] = 1
+    elif FIFA2018.loc[i,'league'] == 'English Premier League':
+        FIFA2018.loc[i,'Big_league_or_not'] = 1
+    elif FIFA2018.loc[i,'league'] == 'Italian Serie A':
+        FIFA2018.loc[i,'Big_league_or_not'] = 1
+    else:
+        FIFA2018.loc[i,'Big_league_or_not'] = 0
+
+#impact of playing in one of TOP leagues for wage/value
+x1=FIFA2018['eur_wage'].corr(FIFA2018['Big_league_or_not'])
+x2=FIFA2018['eur_value'].corr(FIFA2018['Big_league_or_not'])
+print("%s: %f" % ('Wage', x1))
+print("%s: %f" % ('Value', x2))
+
+
+#changing chosen columns to lists
+s = list(FIFA2018['name'])
+p = list(FIFA2018['eur_value'])
+
+#creating dictionary
+dicts = {}
+col = FIFA2018['name']
+for i in col.index:
+    for j in col:
+        if j not in dicts.keys():
+            dicts[j] = p[i]
+            i = i + 1
+
+#checking
+dicts['Neymar']
+
+#sort by value
+FIFA2018 = FIFA2018.sort_values(by=['eur_value'])
+
+#first 10 rows
+FIFA2018['eur_value'].head(10)
+
+#drop rows with euro value = 0
+FIFA2018 = FIFA2018.drop([3105, 17990, 2199, 17628, 7734, 3272], axis=0)
+
+#this function let chose any player(d) and return amount of players(sorted from cheapest to most expensive) which you can buy at the player's (d) price
+def f1(data, d):
+    selector = (FIFA2018['eur_value'].cumsum() <= d)
+    num_afforded_players = len(FIFA2018[selector])
+    return num_afforded_players
+
+#So, python says that from 1 Cristiano Ronaldo we can buy 1238 other players(sorted ascending by value). Impresive!
+f1(FIFA2018, dicts['Cristiano Ronaldo'])
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
